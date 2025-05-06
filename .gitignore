@@ -1,0 +1,91 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.project
+.settings/
+*.swp
+*.swo
+*~
+
+# Dependency directories
+node_modules/
+bower_components/
+jspm_packages/
+vendor/
+.npm/
+
+# Build output
+dist/
+build/
+out/
+target/
+*.pyc
+__pycache__/
+*.class
+bin/
+obj/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+.env.staging
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Testing
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+junit.xml
+
+# Misc
+.cache/
+.temp/
+*.bak
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.git/
+.gitattributes
+
+# Application specific
+uploads/
+tmp/
+temp/
+logs/
