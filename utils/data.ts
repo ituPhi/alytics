@@ -94,5 +94,5 @@ export async function runAllReports(): Promise<Record<string, ReportResult[]>> {
   return results;
 }
 
-const reportTest = await runAllReports();
-console.log(reportTest);
+//const reportTest = await runAllReports();
+//console.log(reportTest);

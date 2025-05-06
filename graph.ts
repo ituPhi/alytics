@@ -1,100 +1,85 @@
-import { StateGraph, Annotation } from "@langchain/langgraph";
-import { createAgent } from "./utils/createAgent";
+import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { runReports } from "./utils/notion";
-import { markdownToBlocks } from "@tryfabric/martian";
+import { promises as fs } from "fs";
+import { externalChartConfig } from "./configs/chartConfig";
+import { externalGoals } from "./configs/externalGoals";
+import { createAnalizerAgent } from "./utils/AnalizerAgent";
+import { runAllReports } from "./utils/data";
 
-import {
-  PromptTemplate,
-  SystemMessagePromptTemplate,
-} from "@langchain/core/prompts";
-
-import { Client } from "@notionhq/client";
-
-// Initializing a client
-const notion = new Client({
-  auth: process.env.NOTION_TOKEN,
-});
+import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 
 const StateAnnotation = Annotation.Root({
   data: Annotation<any>,
   goals: Annotation<string>,
-  awnser: Annotation<BaseMessage[]>,
+  analysis: Annotation<string>,
+  charts: Annotation<
+    {
+      title: string;
+      description: string;
+      buffer: Buffer;
+    }[]
+  >,
+  reportMarkdown: Annotation<string>, // full final report in Markdown
 });
 
-const llm = new ChatOpenAI({
-  apiKey: process.env.OPENAI_KEY,
-  model: "gpt-4.1-nano",
-});
-const goals = `
-  — Business Goal 1: Increase Product Sales
-  — KPI 1: Conversion Rate (Purchases / Sessions)
-  — Goal: Achieve a 2.5% purchase conversion rate sitewide.
-  `;
-const data = await runReports();
-
-async function AnalizeNode(
+async function PrepareDataNode(
   state: typeof StateAnnotation.State,
 ): Promise<typeof StateAnnotation.Update> {
-  const analizer = await createAgent({ llm: llm });
-  const response = await analizer.invoke({ data: data, goals: goals });
-  let d = response["content"];
-  let content = d;
+  //gather data
+  const data = await runAllReports();
+  const goals = externalGoals;
   return {
-    data: content,
+    data: data,
+    goals: goals,
   };
 }
 
-async function FormatNode(
-  state: typeof StateAnnotation.State,
-): Promise<typeof StateAnnotation.Update> {
-  const response = await llm.invoke(
-    `You are an expert markdown formatting agent. Format the following text beautifully in markdown:
+async function AnalyzeNode(state: typeof StateAnnotation.State) {
+  //currently is turned off its not returning state
+  const { data, goals } = state;
 
-      ${state.data}`,
-  );
+  const llm = new ChatOpenAI({
+    apiKey: process.env.OPENAI_KEY,
+    model: "gpt-4.1-nano",
+  });
+  const analizer = await createAnalizerAgent({ llm: llm });
+  // const analisys = await analizer.invoke({ data: data, goals: goals });
+  //console.log(analisys.content);
+}
 
-  //console.log(response);
+async function ChartsNode(state: typeof StateAnnotation.State) {
+  const chartConfigs = externalChartConfig;
   return {
-    awnser: [response],
+    charts: await Promise.all(
+      chartConfigs.map(async (config) => ({
+        title: config.dataKey,
+        description: config.description,
+        buffer: await GenerateSimpleChartNode({
+          data: state.data[config.dataKey],
+          labelKey: config.labelKey,
+          valueKey: config.valueKey,
+          chartType: config.chartType,
+          title: config.title,
+        }),
+      })),
+    ),
   };
 }
 
 const workflow = new StateGraph(StateAnnotation)
-  .addNode("analyze", AnalizeNode)
-  .addNode("format", FormatNode)
-  .addEdge("__start__", "analyze")
-  .addEdge("analyze", "format")
-  .addEdge("format", "__end__")
+  .addNode("prepareData", PrepareDataNode)
+  .addNode("analize", AnalyzeNode)
+  .addNode("chartsNode", ChartsNode)
+  .addEdge("__start__", "prepareData")
+  .addEdge("prepareData", "analize")
+  .addEdge("prepareData", "chartsNode")
+  .addEdge("chartsNode", "__end__")
+  .addEdge("analize", "__end__")
   .compile();
 
-const testResponse = await workflow.invoke({
-  data: data,
-  goals: goals,
-});
-const t = testResponse;
-let f = t.awnser[0]["content"];
-const mdtext: string = f as string;
-const md = markdownToBlocks(mdtext);
-
-(async () => {
-  const response = await notion.pages.create({
-    parent: {
-      type: "page_id",
-      page_id: "1dd9084199fe8059b5afdcd322a46554",
-    },
-    properties: {
-      title: [
-        {
-          text: {
-            content: "Analytics Report", // Or whatever title you want
-          },
-        },
-      ],
-    },
-    children:
-      md as import("@notionhq/client/build/src/api-endpoints").BlockObjectRequest[], // Use the converted markdown blocks directly
-  });
-  console.log(response);
-})();
+const testResponse = await workflow.invoke({});
+const charts = testResponse.charts;
+let buffer = charts[0].buffer;
+//console.log(buffer["imageBuffer"]);
+const fileName = `./${charts[1].title.replace(/\s+/g, "_")}.png`;
+fs.writeFile(fileName, buffer["imageBuffer"]);
