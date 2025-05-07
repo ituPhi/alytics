@@ -24,6 +24,7 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
     title,
   });
 
+  // here we need to upload to supabase as PNG and return the URL
   return {
     imageBuffer: pngBuffer,
   };
