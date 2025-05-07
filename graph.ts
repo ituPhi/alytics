@@ -4,6 +4,9 @@ import { externalChartConfig, externalGoals } from "./configs/config";
 import { createAnalizerAgent, createCopyWriterAgent } from "./utils/agents";
 import { runAllReports, getGoals } from "./utils/data";
 import { GenerateSimpleChartNode } from "./utils/GenerateChart";
+import { markdownToBlocks } from "@tryfabric/martian";
+import { Client } from "@notionhq/client";
+import fs from "fs";
 
 const StateAnnotation = Annotation.Root({
   data: Annotation<any>,
@@ -74,7 +77,7 @@ async function CompileNode(
 ): Promise<typeof StateAnnotation.Update> {
   const llm = new ChatOpenAI({
     apiKey: process.env.OPENAI_KEY,
-    model: "gpt-4.1-nano",
+    model: "gpt-4o",
   });
   const { data, analysis, charts, goals } = state;
   const copyWritter = await createCopyWriterAgent({ llm: llm });
@@ -84,10 +87,39 @@ async function CompileNode(
     charts: charts,
     goals: goals,
   });
-  //console.log(charts);
+
   return {
     reportMarkdown: finalReport.content,
   };
+}
+
+async function PublishNode(state: typeof StateAnnotation.State) {
+  const notion = new Client({
+    auth: process.env.NOTION_TOKEN,
+  });
+  const contentMD = state.reportMarkdown;
+  console.log(contentMD);
+  const notionBlocks = markdownToBlocks(contentMD);
+  (async () => {
+    const response = await notion.pages.create({
+      parent: {
+        type: "page_id",
+        page_id: "1dd9084199fe8059b5afdcd322a46554",
+      },
+      properties: {
+        title: [
+          {
+            text: {
+              content: `Weekly Report ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`, // Or whatever title you want
+            },
+          },
+        ],
+      },
+      children:
+        notionBlocks as import("@notionhq/client/build/src/api-endpoints").BlockObjectRequest[], // Use the converted markdown blocks directly
+    });
+    //console.log(notionBlocks);
+  })();
 }
 
 const workflow = new StateGraph(StateAnnotation)
@@ -95,15 +127,21 @@ const workflow = new StateGraph(StateAnnotation)
   .addNode("analize", AnalyzeNode)
   .addNode("chartsNode", ChartsNode)
   .addNode("compile", CompileNode)
+  .addNode("publish", PublishNode)
   .addEdge("__start__", "prepareData")
   .addEdge("prepareData", "analize")
   //TODO:Would be awesome to have a node to apply critical thinking on the analisis
   .addEdge("prepareData", "chartsNode")
-  //TODO:COMPILE NODE we need a node that compiles charts + analisis in a nice markdown format
-  //TODO:PUBLISH NODE we need a node that publishes markdown to Notion Blocks in a new page
   .addEdge("chartsNode", "compile")
   .addEdge("analize", "compile")
+  .addEdge("compile", "publish")
+  .addEdge("publish", "__end__")
   .compile();
 
 const testResponse = await workflow.invoke({});
-//console.log(testResponse.reportMarkdown);
+console.log(testResponse.reportMarkdown);
+
+const drawableGraph = await workflow.getGraphAsync();
+const image = await drawableGraph.drawMermaidPng();
+const arrayBuffer = await image.arrayBuffer();
+fs.writeFileSync("graph.png", Buffer.from(arrayBuffer));

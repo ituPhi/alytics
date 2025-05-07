@@ -25,6 +25,7 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
     title,
   });
 
+  const titleEXT = `${title}.png`;
   async function uploadChartImage(buffer: Buffer, fileName: string) {
     const { data: uploadData, error: uploadError } = await sbc.storage
       .from("charts")
@@ -39,12 +40,12 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
 
     const { data: signedData, error: signedError } = await sbc.storage
       .from("charts")
-      .createSignedUrl(title, 60 * 60 * 24 * 7);
+      .createSignedUrl(titleEXT, 60 * 60 * 24 * 7);
 
     if (signedError)
       throw new Error(`Failed to generate signed URL: ${signedError.message}`);
 
     return signedData;
   }
-  return uploadChartImage(pngBuffer, title);
+  return uploadChartImage(pngBuffer, titleEXT);
 }
