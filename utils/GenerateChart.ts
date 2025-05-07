@@ -1,5 +1,4 @@
 import { CreateChart } from "./CreateChart"; // wherever you put the helper
-import fs from "fs/promises";
 import { runAllReports } from "./data";
 
 interface ChartConfig {
@@ -24,10 +23,6 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
     chartType,
     title,
   });
-
-  // Save locally
-  // await fs.writeFile(`./${title.replace(/\s+/g, "_")}.png`, pngBuffer);
-  //console.log(`Saved PNG to ./${title.replace(/\s+/g, "_")}.png`);
 
   return {
     imageBuffer: pngBuffer,

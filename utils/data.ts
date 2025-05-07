@@ -1,5 +1,7 @@
 // reports/index.ts
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { promises as fs, readv } from "fs";
+import path from "path";
 
 const analyticsDataClient = new BetaAnalyticsDataClient();
 const propertyId = "properties/442724200"; // more clear
@@ -96,3 +98,14 @@ export async function runAllReports(): Promise<Record<string, ReportResult[]>> {
 
 //const reportTest = await runAllReports();
 //console.log(reportTest);
+
+// create helper function to get data from markdown
+export async function getGoals() {
+  const filePath = path.resolve(process.cwd(), "configs", "goals.md");
+  try {
+    const content = await fs.readFile(filePath, "utf-8");
+    return content;
+  } catch (error) {
+    throw new Error(`Error reading goals file: ${error.message}`);
+  }
+}

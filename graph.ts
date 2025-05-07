@@ -1,11 +1,8 @@
 import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { promises as fs } from "fs";
-import { externalChartConfig } from "./configs/chartConfig";
-import { externalGoals } from "./configs/externalGoals";
-import { createAnalizerAgent } from "./utils/AnalizerAgent";
-import { runAllReports } from "./utils/data";
-
+import { externalChartConfig, externalGoals } from "./configs/config";
+import { createAnalizerAgent } from "./utils/agents";
+import { runAllReports, getGoals } from "./utils/data";
 import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 
 const StateAnnotation = Annotation.Root({
@@ -19,15 +16,14 @@ const StateAnnotation = Annotation.Root({
       buffer: Buffer;
     }[]
   >,
-  reportMarkdown: Annotation<string>, // full final report in Markdown
+  reportMarkdown: Annotation<string>,
 });
 
 async function PrepareDataNode(
   state: typeof StateAnnotation.State,
 ): Promise<typeof StateAnnotation.Update> {
-  //gather data
-  const data = await runAllReports();
-  const goals = externalGoals;
+  //gather data, goals
+  const [data, goals] = await Promise.all([runAllReports(), getGoals()]);
   return {
     data: data,
     goals: goals,
@@ -43,12 +39,12 @@ async function AnalyzeNode(state: typeof StateAnnotation.State) {
     model: "gpt-4.1-nano",
   });
   const analizer = await createAnalizerAgent({ llm: llm });
-  // const analisys = await analizer.invoke({ data: data, goals: goals });
+  //const analisys = await analizer.invoke({ data: data, goals: goals });
   //console.log(analisys.content);
 }
 
 async function ChartsNode(state: typeof StateAnnotation.State) {
-  const chartConfigs = externalChartConfig;
+  const chartConfigs = externalChartConfig; // chart config should eventualy be a call to supabase
   return {
     charts: await Promise.all(
       chartConfigs.map(async (config) => ({
@@ -72,14 +68,13 @@ const workflow = new StateGraph(StateAnnotation)
   .addNode("chartsNode", ChartsNode)
   .addEdge("__start__", "prepareData")
   .addEdge("prepareData", "analize")
+  //TODO:Would be awesome to have a node to apply critical thinking on the analisis
   .addEdge("prepareData", "chartsNode")
+  //TODO:COMPILE NODE we need a node that compiles charts + analisis in a nice markdown format
+  //TODO:PUBLISH NODE we need a node that publishes markdown to Notion Blocks in a new page
   .addEdge("chartsNode", "__end__")
   .addEdge("analize", "__end__")
   .compile();
 
 const testResponse = await workflow.invoke({});
-const charts = testResponse.charts;
-let buffer = charts[0].buffer;
-//console.log(buffer["imageBuffer"]);
-const fileName = `./${charts[1].title.replace(/\s+/g, "_")}.png`;
-fs.writeFile(fileName, buffer["imageBuffer"]);
+console.log(testResponse);

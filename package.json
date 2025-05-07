@@ -2,9 +2,9 @@
   "name": "agentlitycs",
   "version": "1.0.0",
   "description": "",
-  "main": "mais.js",
+  "main": "graph.ts",
   "scripts": {
-    "dev": "node --env-file=.env tools.js"
+    "dev": "npx tsx --env-file=.env graph.ts"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,7 @@
   "type": "module",
   "dependencies": {
     "@google-analytics/data": "^5.1.0",
+    "@langchain/community": "^0.3.42",
     "@langchain/core": "^0.3.45",
     "@langchain/langgraph": "^0.2.65",
     "@langchain/openai": "^0.5.6",

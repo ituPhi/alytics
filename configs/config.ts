@@ -24,3 +24,8 @@ export const externalChartConfig = [
     title: "Source_Country",
   },
 ];
+
+export const externalGoals = `
+  — Business Goal 1: Increase Product Sales
+  — KPI 1: Conversion Rate (Purchases / Sessions)
+`;
