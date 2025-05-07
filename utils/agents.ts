@@ -31,7 +31,7 @@ export async function createCopyWriterAgent({
 }): Promise<Runnable> {
   let copyWriterPrompt = PromptTemplate.fromTemplate(`
     You are a senior business data analyst and expert report writer.
-    Your task is to generate a **professional, executive-style** final report in **Markdown format**.
+    Your task is to generate a professional, executive-style final report in Markdown format.
 
     You are provided with:
     - An Analysis of the data

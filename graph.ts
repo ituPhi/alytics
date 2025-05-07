@@ -56,15 +56,14 @@ async function ChartsNode(state: typeof StateAnnotation.State) {
       chartConfigs.map(async (config) => ({
         title: config.dataKey,
         description: config.description,
-        url: "https://placehold.co/600x600",
-        //hard coded for testing untill we set the upload
-        buffer: await GenerateSimpleChartNode({
+        url: await GenerateSimpleChartNode({
           data: state.data[config.dataKey],
           labelKey: config.labelKey,
           valueKey: config.valueKey,
           chartType: config.chartType,
           title: config.title,
         }),
+        //hard coded for testing untill we set the upload
       })),
     ),
   };
@@ -85,8 +84,9 @@ async function CompileNode(
     charts: charts,
     goals: goals,
   });
+  //console.log(charts);
   return {
-    reportMarkdown: finalReport,
+    reportMarkdown: finalReport.content,
   };
 }
 
@@ -106,4 +106,4 @@ const workflow = new StateGraph(StateAnnotation)
   .compile();
 
 const testResponse = await workflow.invoke({});
-console.log(testResponse);
+//console.log(testResponse.reportMarkdown);

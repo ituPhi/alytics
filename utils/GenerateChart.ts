@@ -1,5 +1,6 @@
 import { CreateChart } from "./CreateChart"; // wherever you put the helper
 import { runAllReports } from "./data";
+import { sbc } from "./SupabaseClient";
 
 interface ChartConfig {
   data: any[];
@@ -24,8 +25,26 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
     title,
   });
 
-  // here we need to upload to supabase as PNG and return the URL
-  return {
-    imageBuffer: pngBuffer,
-  };
+  async function uploadChartImage(buffer: Buffer, fileName: string) {
+    const { data: uploadData, error: uploadError } = await sbc.storage
+      .from("charts")
+      .upload(fileName, buffer, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data: signedData, error: signedError } = await sbc.storage
+      .from("charts")
+      .createSignedUrl(title, 60 * 60 * 24 * 7);
+
+    if (signedError)
+      throw new Error(`Failed to generate signed URL: ${signedError.message}`);
+
+    return signedData;
+  }
+  return uploadChartImage(pngBuffer, title);
 }
