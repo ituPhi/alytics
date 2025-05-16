@@ -1,10 +1,10 @@
 // reports/index.ts
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
-import { promises as fs, readv } from "fs";
+import { promises as fs } from "fs";
 import path from "path";
 
 const analyticsDataClient = new BetaAnalyticsDataClient();
-const propertyId = "properties/442724200"; // more clear
+const propertyId = `properties/${process.env.PROPERTY_ID}`; // more clear
 
 type ReportResult = Record<string, any>;
 

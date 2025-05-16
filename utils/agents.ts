@@ -24,6 +24,21 @@ export async function createAnalizerAgent({
   return promptTemplate.pipe(llm);
 }
 
+export async function createCriticalThinkerAgent({
+  llm,
+}: {
+  llm: ChatOpenAI;
+}): Promise<Runnable> {
+  let promptTemplate = PromptTemplate.fromTemplate(
+    `Translate the following analysis to Spanish, respect the markdown format do not change anything else
+    REPORT: {reportMarkdown}
+
+`,
+  );
+
+  return promptTemplate.pipe(llm);
+}
+
 export async function createCopyWriterAgent({
   llm,
 }: {

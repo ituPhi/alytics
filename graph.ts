@@ -1,7 +1,11 @@
 import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { externalChartConfig, externalGoals } from "./configs/config";
-import { createAnalizerAgent, createCopyWriterAgent } from "./utils/agents";
+import {
+  createAnalizerAgent,
+  createCopyWriterAgent,
+  createCriticalThinkerAgent,
+} from "./utils/agents";
 import { runAllReports, getGoals } from "./utils/data";
 import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 import { markdownToBlocks } from "@tryfabric/martian";
@@ -48,6 +52,22 @@ async function AnalyzeNode(
   let analysisObj = { content };
   return {
     analysis: content,
+  };
+}
+
+async function CriticalThinker(
+  state: typeof StateAnnotation.State,
+): Promise<typeof StateAnnotation.Update> {
+  const llm = new ChatOpenAI({
+    apiKey: process.env.OPENAI_KEY,
+    model: "gpt-4.1-nano",
+  });
+  const criticalThinker = await createCriticalThinkerAgent({ llm: llm });
+  const refinedAnalysis = await criticalThinker.invoke({
+    reportMarkdown: state.reportMarkdown,
+  });
+  return {
+    reportMarkdown: refinedAnalysis.content,
   };
 }
 
@@ -104,7 +124,7 @@ async function PublishNode(state: typeof StateAnnotation.State) {
     const response = await notion.pages.create({
       parent: {
         type: "page_id",
-        page_id: "1dd9084199fe8059b5afdcd322a46554",
+        page_id: "1ee9084199fe809498dcf0c63d139419", // this page id or owkrspace it needs to be dynamically set
       },
       properties: {
         title: [
@@ -127,14 +147,16 @@ const workflow = new StateGraph(StateAnnotation)
   .addNode("analize", AnalyzeNode)
   .addNode("chartsNode", ChartsNode)
   .addNode("compile", CompileNode)
+  .addNode("criticalThinker", CriticalThinker)
   .addNode("publish", PublishNode)
   .addEdge("__start__", "prepareData")
   .addEdge("prepareData", "analize")
+  .addEdge("analize", "compile")
+  .addEdge("compile", "criticalThinker")
   //TODO:Would be awesome to have a node to apply critical thinking on the analisis
   .addEdge("prepareData", "chartsNode")
   .addEdge("chartsNode", "compile")
-  .addEdge("analize", "compile")
-  .addEdge("compile", "publish")
+  .addEdge("criticalThinker", "publish")
   .addEdge("publish", "__end__")
   .compile();
 
