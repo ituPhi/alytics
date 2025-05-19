@@ -20,6 +20,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "@tryfabric/martian": "^1.2.4",
     "chart.js": "^4.4.9",
-    "chartjs-node-canvas": "^5.0.0"
+    "chartjs-node-canvas": "^5.0.0",
+    "googleapis": "^148.0.0"
   }
 }

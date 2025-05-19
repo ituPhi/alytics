@@ -11,6 +11,7 @@ import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 import { markdownToBlocks } from "@tryfabric/martian";
 import { Client } from "@notionhq/client";
 import fs from "fs";
+import { getUserData } from "./utils/getUserData";
 
 const StateAnnotation = Annotation.Root({
   data: Annotation<any>,
@@ -32,6 +33,7 @@ async function PrepareDataNode(
 ): Promise<typeof StateAnnotation.Update> {
   //gather data, goals
   const [data, goals] = await Promise.all([runAllReports(), getGoals()]);
+  console.log(data);
   return {
     data: data,
     goals: goals,
@@ -114,8 +116,10 @@ async function CompileNode(
 }
 
 async function PublishNode(state: typeof StateAnnotation.State) {
+  const userConfig = await getUserData();
+  let NOTION_TOKEN = userConfig?.notion_access_token;
   const notion = new Client({
-    auth: process.env.NOTION_TOKEN,
+    auth: NOTION_TOKEN,
   });
   const contentMD = state.reportMarkdown;
   console.log(contentMD);
@@ -161,9 +165,9 @@ const workflow = new StateGraph(StateAnnotation)
   .compile();
 
 const testResponse = await workflow.invoke({});
-console.log(testResponse.reportMarkdown);
+//console.log(testResponse.reportMarkdown);
 
-const drawableGraph = await workflow.getGraphAsync();
-const image = await drawableGraph.drawMermaidPng();
-const arrayBuffer = await image.arrayBuffer();
-fs.writeFileSync("graph.png", Buffer.from(arrayBuffer));
+//const drawableGraph = await workflow.getGraphAsync();
+//const image = await drawableGraph.drawMermaidPng();
+//const arrayBuffer = await image.arrayBuffer();
+//fs.writeFileSync("graph.png", Buffer.from(arrayBuffer));
