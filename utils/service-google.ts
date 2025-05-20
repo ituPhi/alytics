@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { google } from "googleapis";
 
-import { getUserData } from "./getUserData";
+import { getUserData } from "./service-supabase";
 
 // Define TypeScript interfaces for report data
 export interface ReportResult {

@@ -6,12 +6,13 @@ import {
   createCopyWriterAgent,
   createCriticalThinkerAgent,
 } from "./utils/agents";
-import { runAllReports, getGoals } from "./utils/data";
+import { runAllReports, getGoals } from "./utils/service-google";
 import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 import { markdownToBlocks } from "@tryfabric/martian";
 import { Client } from "@notionhq/client";
 import fs from "fs";
-import { getUserData } from "./utils/getUserData";
+import { getUserData } from "./utils/service-supabase";
+import { getNotionPageId } from "./utils/service-notion";
 
 const StateAnnotation = Annotation.Root({
   data: Annotation<any>,
@@ -121,6 +122,9 @@ async function PublishNode(state: typeof StateAnnotation.State) {
   const notion = new Client({
     auth: NOTION_TOKEN,
   });
+
+  const userPageId = await getNotionPageId("Reports", notion);
+
   const contentMD = state.reportMarkdown;
   console.log(contentMD);
   const notionBlocks = markdownToBlocks(contentMD);
@@ -128,7 +132,7 @@ async function PublishNode(state: typeof StateAnnotation.State) {
     const response = await notion.pages.create({
       parent: {
         type: "page_id",
-        page_id: "1ee9084199fe809498dcf0c63d139419", // this page id or owkrspace it needs to be dynamically set
+        page_id: userPageId as string,
       },
       properties: {
         title: [

@@ -1,4 +1,4 @@
-import { sbc } from "./SupabaseClient";
+import { sbc } from "./clients";
 
 export interface UserConfig {
   id: string;
