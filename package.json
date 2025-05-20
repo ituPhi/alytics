@@ -21,6 +21,10 @@
     "@tryfabric/martian": "^1.2.4",
     "chart.js": "^4.4.9",
     "chartjs-node-canvas": "^5.0.0",
+    "express": "^5.1.0",
     "googleapis": "^148.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2"
   }
 }

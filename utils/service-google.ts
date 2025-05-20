@@ -17,13 +17,11 @@ export interface ReportsData {
  * Initialize the Google Analytics client
  * @returns An object with initialized clients and property ID
  */
-export async function initAnalyticsClient() {
-  const userData = await getUserData();
-
-  if (!userData) {
-    throw new Error("No user data found");
-  }
-
+export async function initAnalyticsClient(
+  ga_access_token: string,
+  ga_refresh_token: string,
+  ga_property_id: string,
+) {
   const CLIENT_ID = process.env.CLIENT_ID;
   const CLIENT_SECRET = process.env.CLIENT_SECRET;
   const REDIRECT_URI = "https://localhost:4321/api/auth/analytics/callback";
@@ -32,9 +30,9 @@ export async function initAnalyticsClient() {
     throw new Error("Missing Google API credentials");
   }
 
-  const accessToken = userData.ga_access_token;
-  const refreshToken = userData.ga_refresh_token;
-  const propertyId = userData.ga_property_id;
+  const accessToken = ga_access_token;
+  const refreshToken = ga_refresh_token;
+  const propertyId = ga_property_id;
 
   // Initialize OAuth2 client
   const oauth2Client = new google.auth.OAuth2(
@@ -42,30 +40,20 @@ export async function initAnalyticsClient() {
     CLIENT_SECRET,
     REDIRECT_URI,
   );
-
   oauth2Client.setCredentials({
     access_token: accessToken,
     refresh_token: refreshToken,
   });
 
-  // Set the auth client for Google APIs
   google.options({ auth: oauth2Client });
-
-  // Initialize Analytics Data API
   const analyticsData = google.analyticsdata("v1beta");
-
-  //console.log("OAuth2Client initialized:", oauth2Client);
 
   return {
     analyticsData,
     propertyId: `properties/${propertyId}`,
-    userData,
   };
 }
 
-/**
- * Run the Top Pages report
- */
 export async function getTopPagesReport(
   analyticsData: any,
   propertyId: string,
@@ -113,9 +101,6 @@ export async function getTopPagesReport(
   }
 }
 
-/**
- * Run the Source Engagement report
- */
 export async function getSourceEngagementReport(
   analyticsData: any,
   propertyId: string,
@@ -212,12 +197,20 @@ export async function getCountryReport(
  * Run all reports and return the results
  * @returns Object containing all report results
  */
-export async function runAllReports(): Promise<ReportsData> {
+export async function runAllReports(
+  ga_access_token: string,
+  ga_refresh_token: string,
+  ga_property_id: string,
+): Promise<ReportsData> {
   const results: ReportsData = {};
 
   try {
     // Initialize the analytics client
-    const { analyticsData, propertyId } = await initAnalyticsClient();
+    const { analyticsData, propertyId } = await initAnalyticsClient(
+      ga_access_token,
+      ga_refresh_token,
+      ga_property_id,
+    );
 
     // Run all reports in parallel
     const [topPages, sourceEngagement, countryReport] = await Promise.all([

@@ -1,6 +1,6 @@
 import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { externalChartConfig, externalGoals } from "./configs/config";
+import { externalChartConfig } from "./configs/config";
 import {
   createAnalizerAgent,
   createCopyWriterAgent,
@@ -10,11 +10,17 @@ import { runAllReports, getGoals } from "./utils/service-google";
 import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 import { markdownToBlocks } from "@tryfabric/martian";
 import { Client } from "@notionhq/client";
-import fs from "fs";
-import { getUserData } from "./utils/service-supabase";
 import { getNotionPageId } from "./utils/service-notion";
 
-const StateAnnotation = Annotation.Root({
+const UserStateAnnotation = Annotation.Root({
+  userId: Annotation<string>(),
+  notion_access_token: Annotation<string>(),
+  ga_access_token: Annotation<string>(),
+  ga_refresh_token: Annotation<string>(),
+  ga_property_id: Annotation<string>(),
+});
+
+const ReportAnnotation = Annotation.Root({
   data: Annotation<any>,
   goals: Annotation<string>,
   analysis: Annotation<string>,
@@ -29,11 +35,20 @@ const StateAnnotation = Annotation.Root({
   reportMarkdown: Annotation<string>,
 });
 
+const StateAnnotation = Annotation.Root({
+  ...UserStateAnnotation.spec,
+  ...ReportAnnotation.spec,
+});
+
 async function PrepareDataNode(
   state: typeof StateAnnotation.State,
 ): Promise<typeof StateAnnotation.Update> {
   //gather data, goals
-  const [data, goals] = await Promise.all([runAllReports(), getGoals()]);
+  const { ga_access_token, ga_refresh_token, ga_property_id } = state;
+  const [data, goals] = await Promise.all([
+    runAllReports(ga_access_token, ga_refresh_token, ga_property_id),
+    getGoals(),
+  ]);
   console.log(data);
   return {
     data: data,
@@ -89,7 +104,6 @@ async function ChartsNode(state: typeof StateAnnotation.State) {
           chartType: config.chartType,
           title: config.title,
         }),
-        //hard coded for testing untill we set the upload
       })),
     ),
   };
@@ -117,8 +131,8 @@ async function CompileNode(
 }
 
 async function PublishNode(state: typeof StateAnnotation.State) {
-  const userConfig = await getUserData();
-  let NOTION_TOKEN = userConfig?.notion_access_token;
+  const { notion_access_token } = state;
+  let NOTION_TOKEN = notion_access_token;
   const notion = new Client({
     auth: NOTION_TOKEN,
   });
@@ -150,7 +164,7 @@ async function PublishNode(state: typeof StateAnnotation.State) {
   })();
 }
 
-const workflow = new StateGraph(StateAnnotation)
+export const workflow = new StateGraph(StateAnnotation)
   .addNode("prepareData", PrepareDataNode)
   .addNode("analize", AnalyzeNode)
   .addNode("chartsNode", ChartsNode)
@@ -167,11 +181,3 @@ const workflow = new StateGraph(StateAnnotation)
   .addEdge("criticalThinker", "publish")
   .addEdge("publish", "__end__")
   .compile();
-
-const testResponse = await workflow.invoke({});
-//console.log(testResponse.reportMarkdown);
-
-//const drawableGraph = await workflow.getGraphAsync();
-//const image = await drawableGraph.drawMermaidPng();
-//const arrayBuffer = await image.arrayBuffer();
-//fs.writeFileSync("graph.png", Buffer.from(arrayBuffer));
