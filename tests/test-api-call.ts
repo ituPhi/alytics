@@ -1,6 +1,6 @@
 import { getUserDataById } from "../utils/service-supabase";
 
-async function testGraphInvoke() {
+async function run() {
   const userConfig = await getUserDataById(
     "f7dfecb9-b750-477d-8f2c-c090a7aa5dce",
   );
@@ -31,4 +31,4 @@ async function testGraphInvoke() {
   console.log("Graph response:", result);
 }
 
-testGraphInvoke().catch(console.error);
+run().catch(console.error);
