@@ -49,7 +49,7 @@ async function PrepareDataNode(
     runAllReports(ga_access_token, ga_refresh_token, ga_property_id),
     getGoals(),
   ]);
-  console.log(data);
+
   return {
     data: data,
     goals: goals,
@@ -138,9 +138,8 @@ async function PublishNode(state: typeof StateAnnotation.State) {
   });
 
   const userPageId = await getNotionPageId("Reports", notion);
-
   const contentMD = state.reportMarkdown;
-  console.log(contentMD);
+
   const notionBlocks = markdownToBlocks(contentMD);
   (async () => {
     const response = await notion.pages.create({
@@ -160,7 +159,6 @@ async function PublishNode(state: typeof StateAnnotation.State) {
       children:
         notionBlocks as import("@notionhq/client/build/src/api-endpoints").BlockObjectRequest[], // Use the converted markdown blocks directly
     });
-    //console.log(notionBlocks);
   })();
 }
 

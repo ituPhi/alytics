@@ -18,18 +18,6 @@ export interface UserConfig {
   next_run: string;
 }
 
-export async function getUserData(): Promise<UserConfig | null> {
-  let { data: user_configs, error } = await sbc
-    .from("user_configs")
-    .select("*");
-
-  if (user_configs && user_configs.length > 0) {
-    //console.log(user_configs);
-    return user_configs[0] as UserConfig;
-  }
-  return null;
-}
-
 export async function getUserDataById(id: string): Promise<UserConfig | null> {
   let { data: user_configs, error } = await sbc
     .from("user_configs")
@@ -42,11 +30,3 @@ export async function getUserDataById(id: string): Promise<UserConfig | null> {
   }
   return null;
 }
-
-//const singleUserData = await getUserDataById(
-//  "f7dfecb9-b750-477d-8f2c-c090a7aa5dce",
-//);
-//console.log(singleUserData);
-//const userConfig = await getUserDataById(
-//  "f7dfecb9-b750-477d-8f2c-c090a7aa5dce",
-//);

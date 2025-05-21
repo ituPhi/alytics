@@ -21,10 +21,18 @@
     "@tryfabric/martian": "^1.2.4",
     "chart.js": "^4.4.9",
     "chartjs-node-canvas": "^5.0.0",
+    "connect-timeout": "^1.9.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
-    "googleapis": "^148.0.0"
+    "express-rate-limit": "^7.5.0",
+    "googleapis": "^148.0.0",
+    "helmet": "^8.1.0"
   },
   "devDependencies": {
+    "@types/connect-timeout": "^1.9.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2"
   }
 }
