@@ -91,4 +91,11 @@ async function run() {
     }
   }
 }
+// Run the function every minute for testing
+setInterval(() => {
+  console.log("Running scheduled task...");
+  run().catch(console.error);
+}, 45 * 1000); // 60 seconds * 1000 milliseconds
+
+// Initial run
 run().catch(console.error);
