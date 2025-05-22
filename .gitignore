@@ -89,3 +89,5 @@ uploads/
 tmp/
 temp/
 logs/
+
+.trigger

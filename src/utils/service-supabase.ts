@@ -30,3 +30,30 @@ export async function getUserDataById(id: string): Promise<UserConfig | null> {
   }
   return null;
 }
+
+export const getTodayUsers = async (): Promise<UserConfig[]> => {
+  const today = new Date().toISOString().split("T")[0];
+  let { data: users, error } = await sbc
+    .from("user_configs")
+    .select("*")
+    .eq("next_run", today);
+  if (error) console.error(error);
+  if (users && users.length > 0) {
+    return users as UserConfig[];
+  }
+  return [];
+};
+
+export async function updateUserNextRun(
+  user: UserConfig,
+  formattedNextRunDate,
+) {
+  // Update the user's next_run and updated_at in the database
+  const { error: updateError } = await sbc
+    .from("user_configs")
+    .update({
+      next_run: formattedNextRunDate,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+}

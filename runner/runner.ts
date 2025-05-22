@@ -1,4 +1,3 @@
-import { getUserDataById } from "../src/service-supabase";
 import { createClient } from "@supabase/supabase-js";
 
 async function run() {
@@ -9,6 +8,7 @@ async function run() {
   );
   const today = new Date().toISOString().split("T")[0];
   console.log("today", today);
+
   const { data: users, error } = await supabase
     .from("user_configs")
     .select("*")
