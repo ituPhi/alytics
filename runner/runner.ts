@@ -1,4 +1,4 @@
-import { getUserDataById } from "../utils/service-supabase";
+import { getUserDataById } from "../src/service-supabase";
 import { createClient } from "@supabase/supabase-js";
 
 async function run() {

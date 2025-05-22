@@ -1,6 +1,6 @@
 import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { externalChartConfig } from "./configs/config";
+import { externalChartConfig } from "../configs/config";
 import {
   createAnalizerAgent,
   createCopyWriterAgent,
@@ -14,12 +14,14 @@ import { getNotionPageId } from "./utils/service-notion";
 
 // Structured logging function
 function logNode(nodeName: string, phase: "start" | "end", data?: any) {
-  console.log(JSON.stringify({
-    timestamp: new Date().toISOString(),
-    node: nodeName,
-    phase,
-    ...(data && { data }),
-  }));
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      node: nodeName,
+      phase,
+      ...(data && { data }),
+    }),
+  );
 }
 
 const UserStateAnnotation = Annotation.Root({
@@ -92,7 +94,9 @@ async function AnalyzeNode(
 async function CriticalThinker(
   state: typeof StateAnnotation.State,
 ): Promise<typeof StateAnnotation.Update> {
-  logNode("CriticalThinker", "start", { reportLength: state.reportMarkdown?.length });
+  logNode("CriticalThinker", "start", {
+    reportLength: state.reportMarkdown?.length,
+  });
   const llm = new ChatOpenAI({
     apiKey: process.env.OPENAI_KEY,
     model: "gpt-4.1-nano",
@@ -104,12 +108,16 @@ async function CriticalThinker(
   const result = {
     reportMarkdown: refinedAnalysis.content,
   };
-  logNode("CriticalThinker", "end", { refinedReportLength: refinedAnalysis.content.length });
+  logNode("CriticalThinker", "end", {
+    refinedReportLength: refinedAnalysis.content.length,
+  });
   return result;
 }
 
 async function ChartsNode(state: typeof StateAnnotation.State) {
-  logNode("ChartsNode", "start", { chartConfigCount: externalChartConfig.length });
+  logNode("ChartsNode", "start", {
+    chartConfigCount: externalChartConfig.length,
+  });
   // this return PROMISE is NOT properly typed
   const chartConfigs = externalChartConfig; // chart config should eventualy be a call to supabase
   const charts = await Promise.all(
@@ -125,7 +133,7 @@ async function ChartsNode(state: typeof StateAnnotation.State) {
       }),
     })),
   );
-  
+
   logNode("ChartsNode", "end", { chartsGenerated: charts.length });
   return {
     charts: charts,
@@ -135,11 +143,11 @@ async function ChartsNode(state: typeof StateAnnotation.State) {
 async function CompileNode(
   state: typeof StateAnnotation.State,
 ): Promise<typeof StateAnnotation.Update> {
-  logNode("CompileNode", "start", { 
+  logNode("CompileNode", "start", {
     analysisLength: state.analysis?.length,
-    chartsCount: state.charts?.length
+    chartsCount: state.charts?.length,
   });
-  
+
   const llm = new ChatOpenAI({
     apiKey: process.env.OPENAI_KEY,
     model: "gpt-4o",
@@ -156,14 +164,16 @@ async function CompileNode(
   const result = {
     reportMarkdown: finalReport.content,
   };
-  
+
   logNode("CompileNode", "end", { reportLength: finalReport.content.length });
   return result;
 }
 
 async function PublishNode(state: typeof StateAnnotation.State) {
-  logNode("PublishNode", "start", { reportLength: state.reportMarkdown?.length });
-  
+  logNode("PublishNode", "start", {
+    reportLength: state.reportMarkdown?.length,
+  });
+
   const { notion_access_token } = state;
   let NOTION_TOKEN = notion_access_token;
   const notion = new Client({
@@ -192,10 +202,10 @@ async function PublishNode(state: typeof StateAnnotation.State) {
       children:
         notionBlocks as import("@notionhq/client/build/src/api-endpoints").BlockObjectRequest[], // Use the converted markdown blocks directly
     });
-    
-    logNode("PublishNode", "end", { 
+
+    logNode("PublishNode", "end", {
       pageId: response.id,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   })();
 }

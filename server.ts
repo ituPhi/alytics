@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { workflow } from "./graph";
+import { workflow } from "./src/graph";
 import z from "zod";
 import helmet from "helmet";
 import cors from "cors";
