@@ -1,5 +1,5 @@
 import { sbc } from "./clients";
-
+import { getToday } from "./date-utils";
 export interface UserConfig {
   id: string;
   created_at: string;
@@ -32,7 +32,8 @@ export async function getUserDataById(id: string): Promise<UserConfig | null> {
 }
 
 export const getTodayUsers = async (): Promise<UserConfig[]> => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getToday();
+
   let { data: users, error } = await sbc
     .from("user_configs")
     .select("*")

@@ -55,6 +55,7 @@ export async function initAnalyticsClient(
 export async function getTopPagesReport(
   analyticsData: any,
   propertyId: string,
+  startDate: string,
 ): Promise<ReportResult[]> {
   try {
     const response = await analyticsData.properties.runReport({
@@ -62,7 +63,7 @@ export async function getTopPagesReport(
       requestBody: {
         dateRanges: [
           {
-            startDate: "2020-01-01",
+            startDate: startDate,
             endDate: "today",
           },
         ],
@@ -102,6 +103,7 @@ export async function getTopPagesReport(
 export async function getSourceEngagementReport(
   analyticsData: any,
   propertyId: string,
+  startDate: string,
 ): Promise<ReportResult[]> {
   try {
     const response = await analyticsData.properties.runReport({
@@ -109,7 +111,7 @@ export async function getSourceEngagementReport(
       requestBody: {
         dateRanges: [
           {
-            startDate: "2020-01-01",
+            startDate: startDate,
             endDate: "today",
           },
         ],
@@ -156,6 +158,7 @@ export async function getSourceEngagementReport(
 export async function getCountryReport(
   analyticsData: any,
   propertyId: string,
+  startDate: string,
 ): Promise<ReportResult[]> {
   try {
     const response = await analyticsData.properties.runReport({
@@ -163,7 +166,7 @@ export async function getCountryReport(
       requestBody: {
         dateRanges: [
           {
-            startDate: "2020-01-01",
+            startDate: startDate,
             endDate: "today",
           },
         ],
@@ -199,6 +202,7 @@ export async function runAllReports(
   ga_access_token: string,
   ga_refresh_token: string,
   ga_property_id: string,
+  startDate: string,
 ): Promise<ReportsData> {
   const results: ReportsData = {};
 
@@ -212,9 +216,9 @@ export async function runAllReports(
 
     // Run all reports in parallel
     const [topPages, sourceEngagement, countryReport] = await Promise.all([
-      getTopPagesReport(analyticsData, propertyId),
-      getSourceEngagementReport(analyticsData, propertyId),
-      getCountryReport(analyticsData, propertyId),
+      getTopPagesReport(analyticsData, propertyId, startDate),
+      getSourceEngagementReport(analyticsData, propertyId, startDate),
+      getCountryReport(analyticsData, propertyId, startDate),
     ]);
 
     // Collect results

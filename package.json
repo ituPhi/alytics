@@ -5,7 +5,7 @@
   "main": "graph.ts",
   "scripts": {
     "dev": "npx tsx --env-file=.env server.ts",
-    "runner": "npx tsx --env-file=.env ./runner/runner.ts"
+    "trigger": "npx trigger.dev@latest dev"
   },
   "keywords": [],
   "author": "",

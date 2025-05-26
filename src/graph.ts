@@ -11,6 +11,12 @@ import { GenerateSimpleChartNode } from "./utils/GenerateChart";
 import { markdownToBlocks } from "@tryfabric/martian";
 import { Client } from "@notionhq/client";
 import { getNotionPageId } from "./utils/service-notion";
+import { getUserDataById, UserConfig } from "./utils/service-supabase";
+import { calculateNextrun } from "./utils/calculateNextRun";
+import {
+  calculateReportStartDate,
+  formatDateForStorage,
+} from "./utils/date-utils";
 
 // Structured logging function
 function logNode(nodeName: string, phase: "start" | "end", data?: any) {
@@ -57,9 +63,15 @@ async function PrepareDataNode(
 ): Promise<typeof StateAnnotation.Update> {
   logNode("PrepareDataNode", "start", { userId: state.userId });
   //gather data, goals
+  if (!state.userId) {
+    throw new Error("User ID is missing");
+  }
+  const user: UserConfig | any = await getUserDataById(state.userId);
+  const startDate = formatDateForStorage(calculateReportStartDate(user));
+
   const { ga_access_token, ga_refresh_token, ga_property_id } = state;
   const [data, goals] = await Promise.all([
-    runAllReports(ga_access_token, ga_refresh_token, ga_property_id),
+    runAllReports(ga_access_token, ga_refresh_token, ga_property_id, startDate),
     getGoals(),
   ]);
 
@@ -83,7 +95,6 @@ async function AnalyzeNode(
   const analizer = await createAnalizerAgent({ llm: llm });
   const analysis = await analizer.invoke({ data: data, goals: goals });
   const content = analysis.content;
-  let analysisObj = { content };
   const result = {
     analysis: content,
   };

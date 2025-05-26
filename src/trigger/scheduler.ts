@@ -1,8 +1,11 @@
 // scheduler.ts
-import { schedules, task } from "@trigger.dev/sdk/v3";
+import { schedules } from "@trigger.dev/sdk/v3";
 import { getTodayUsers, updateUserNextRun } from "../utils/service-supabase";
-import { calculateNextrun } from "../utils/calculateNextRun";
 import { processUserReport } from "./processUserReport";
+import {
+  calculateNextRunDate,
+  formatDateForStorage,
+} from "../utils/date-utils";
 
 export const runScheduler = schedules.task({
   id: "report-scheduler",
@@ -29,9 +32,8 @@ export const runScheduler = schedules.task({
 
     // Update next run dates for users
     for (const user of users) {
-      const nextRunMs = calculateNextrun(user);
-      const nextRunDate = new Date(Date.now() + nextRunMs);
-      const formattedNextRunDate = nextRunDate.toISOString().split("T")[0];
+      const nextRunDate = calculateNextRunDate(user.frequency);
+      const formattedNextRunDate = formatDateForStorage(nextRunDate);
       await updateUserNextRun(user, formattedNextRunDate);
     }
 

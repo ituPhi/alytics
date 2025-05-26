@@ -91,3 +91,5 @@ temp/
 logs/
 
 .trigger
+# LangGraph API
+.langgraph_api

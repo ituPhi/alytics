@@ -11,6 +11,8 @@ export async function createAnalizerAgent({
     `You are a senior data analyst.
     Given the following data and business goals/KPIs, provide an executive analysis.
 
+    If you receive any data that is empty or not in the correct format, write in your report that no data was found and skip the report.
+
     - Relate observations to the KPIs if possible.
     - Mention any clear risks, opportunities, or patterns.
     - Be concise, professional, and actionable.
@@ -30,7 +32,10 @@ export async function createCriticalThinkerAgent({
   llm: ChatOpenAI;
 }): Promise<Runnable> {
   let promptTemplate = PromptTemplate.fromTemplate(
-    `Translate the following analysis to Spanish, respect the markdown format do not change anything else
+    `Translate the following analysis to Spanish, respect the markdown format do not change anything else.
+
+    If you receive a report that no data was found, format it nicely.
+
     REPORT: {reportMarkdown}
 
 `,
@@ -47,6 +52,8 @@ export async function createCopyWriterAgent({
   let copyWriterPrompt = PromptTemplate.fromTemplate(`
     You are a senior business data analyst and expert report writer.
     Your task is to generate a professional, executive-style final report in Markdown format.
+
+    If you receive in the analysis no data or data that is empty or not in the correct format, write in your report that no data was found and skip the report by just formating a nice response, passing along the message.
 
     You are provided with:
     - An Analysis of the data

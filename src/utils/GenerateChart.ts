@@ -25,7 +25,8 @@ export async function GenerateSimpleChartNode(config: ChartConfig) {
     title,
   });
 
-  const titleEXT = `${title}.png`;
+  const randomId = Math.random().toString(36).substring(2, 10);
+  const titleEXT = `${title}_${randomId}.png`;
   async function uploadChartImage(buffer: Buffer, fileName: string) {
     const { data: uploadData, error: uploadError } = await sbc.storage
       .from("charts")

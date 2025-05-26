@@ -1,0 +1,8 @@
+{
+  "node_version": "20",
+  "graphs": {
+    "agent": "./src/graph.ts:workflow"
+  },
+  "env": ".env.clean",
+  "dependencies": ["."]
+}
