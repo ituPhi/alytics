@@ -22,7 +22,8 @@ export async function initAnalyticsClient(
 ) {
   const CLIENT_ID = process.env.CLIENT_ID;
   const CLIENT_SECRET = process.env.CLIENT_SECRET;
-  const REDIRECT_URI = "https://localhost:4321/api/auth/analytics/callback";
+  const REDIRECT_URI =
+    "https://alytics.netlify.app/api/auth/analytics/callback";
 
   if (!CLIENT_ID || !CLIENT_SECRET) {
     throw new Error("Missing Google API credentials");
