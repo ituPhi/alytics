@@ -5,7 +5,7 @@ export default defineConfig({
   runtime: "node",
   logLevel: "log",
   build: {
-    external: ["chartjs-node-canvas"],
+    external: ["chartjs-node-canvas", "chart.js"],
   },
   // The max compute seconds a task is allowed to run. If the task run exceeds this duration, it will be stopped.
   // You can override this on an individual task.

@@ -9,7 +9,7 @@ import {
 
 export const runScheduler = schedules.task({
   id: "report-scheduler",
-  cron: "*/5 * * * *", // Every 5 minutes (adjust as needed)
+  cron: "0 * * * *", // Every hour at minute 0
   maxDuration: 60, // 1 minute max for the scheduler
   run: async (payload, { ctx }) => {
     // Fetch users who need reports today

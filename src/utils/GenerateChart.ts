@@ -1,5 +1,5 @@
 import { CreateChart } from "./CreateChart"; // wherever you put the helper
-import { runAllReports } from "./service-google";
+
 import { sbc } from "./clients";
 
 interface ChartConfig {
