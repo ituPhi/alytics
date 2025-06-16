@@ -1,0 +1,13 @@
+graph TD
+    __start__ --> |EntryPoint| prepareData[prepareData]
+
+    prepareData --> analize[analize]
+    prepareData --> |to visualization| chartsNode[chartsNode]
+
+    analize --> |to compilation| compile[compile]
+    chartsNode --> |to compilation| compile
+
+    compile --> |reflect & reason| criticalThinker[criticalThinker]
+    criticalThinker --> |final output| publish[publish]
+
+    publish --> |done| __end__
