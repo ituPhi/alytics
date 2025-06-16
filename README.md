@@ -2,6 +2,7 @@
 
 Automated analytics reporting system that generates weekly reports from Google Analytics data and publishes them to Notion.
 
+![Alytic Workflow](graph-neutral-cli.png)
 ## Overview
 
 Alytic is a LangGraph-powered workflow that:
